@@ -12,7 +12,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/bid")
 @AllArgsConstructor
-@Component
 public class BidController {
     private BidService bidService;
 
