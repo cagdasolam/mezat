@@ -1,8 +1,10 @@
 package com.group7.mezat.controllers;
 
+import com.group7.mezat.responses.ErrorResponse;
 import com.group7.mezat.services.UserService;
 import com.group7.mezat.documents.User;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.group7.mezat.requests.UserPasswordUpdateRequest;
 import com.group7.mezat.responses.UserResponse;
@@ -43,7 +45,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable String id, @RequestBody UserPasswordUpdateRequest newUser){
+    public ResponseEntity<ErrorResponse> updateUser(@PathVariable String id, @RequestBody UserPasswordUpdateRequest newUser){
         return userService.updateUserPassword(id, newUser);
     }
 

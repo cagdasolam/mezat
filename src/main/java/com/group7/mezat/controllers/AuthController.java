@@ -5,7 +5,9 @@ import com.group7.mezat.documents.Role;
 import com.group7.mezat.documents.User;
 import com.group7.mezat.requests.LoginRequest;
 import com.group7.mezat.requests.RegisterRequest;
+import com.group7.mezat.requests.UserPasswordUpdateRequest;
 import com.group7.mezat.responses.AuthResponse;
+import com.group7.mezat.responses.ErrorResponse;
 import com.group7.mezat.responses.UserResponse;
 import com.group7.mezat.services.UserService;
 import org.springframework.http.HttpStatus;
@@ -15,10 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.group7.mezat.security.JwtTokenProvider;
 
 @RestController
@@ -82,5 +81,24 @@ public class AuthController {
         userService.saveUser(user);
         authResponse.setMessage("Başarıyla kayıt olundu");
         return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/changePass/{id}")
+    public ResponseEntity<ErrorResponse> updateUser(@PathVariable String id, @RequestBody UserPasswordUpdateRequest newUser){
+        User user = userService.getOneUserById(id);
+        if(user == null){
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setMessage("Kullanıcı bulunamadı");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+
+        if(!passwordEncoder.matches(newUser.getOldPassword(), user.getPassword())){
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setMessage("Eski şifre hatalı");
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+        user.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        userService.updateUser(user);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
