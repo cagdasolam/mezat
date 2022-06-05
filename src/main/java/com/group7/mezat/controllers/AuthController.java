@@ -97,8 +97,10 @@ public class AuthController {
             errorResponse.setMessage("Eski şifre hatalı");
             return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage("Başarılı");
         user.setPassword(passwordEncoder.encode(newUser.getPassword()));
         userService.updateUser(user);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(errorResponse, HttpStatus.OK);
     }
 }

@@ -1,5 +1,6 @@
 package com.group7.mezat.services;
 
+import com.group7.mezat.controllers.PackageController;
 import com.group7.mezat.documents.*;
 import com.group7.mezat.repos.AuctionRepository;
 import com.group7.mezat.repos.UserRepository;
@@ -192,6 +193,7 @@ public class AuctionService {
         Optional<Auction> auction = auctionRepository.findById(Id);
         if (auction.isPresent()){
             fishPackageList = auction.get().getFishList();
+//            fishPackageList.sort();
 //            every fishPackage in the fishPackageList map and create a {@link PackageResponse} queue structure
             Queue<PackageResponse> packageResponseQueue = new LinkedList<>();
             int turn = 0;
@@ -199,6 +201,12 @@ public class AuctionService {
                 PackageResponse packageResponse = new PackageResponse(fishPackage);
                 packageResponse.setSellerName(userRepository.findById(fishPackage.getSellerId()).get().getName());
                 packageResponse.setTurn(turn);
+                List<Bid> bidList = fishPackage.getBids();
+//                sort bidList according to the bid price descending order
+                bidList.sort(Comparator.comparing(Bid::getBid).reversed());
+//                bidList.sort(Comparator.comparing(Bid::getBid));
+                packageResponse.setBids(bidList);
+                System.out.println(bidList);
                 turn++;
                 packageResponseQueue.add(packageResponse);
             }
@@ -217,21 +225,33 @@ public class AuctionService {
         }
     }
 
-    public void sellPackage(String packageId, PackageSoldRequest soldPackageRequest) {
-        packageService.sellPackage(packageId, soldPackageRequest);
-        Auction auction = getCurrentAuction().getAuction();
-        List<FishPackage> fishPackageList = auction.getFishList();
-
-        FishPackage foundPackage = fishPackageList.stream()
-                .filter(fishPackage2 -> fishPackage2.getId().equals(packageId))
-                .findFirst()
-                .orElse(null);
-
-        if(foundPackage != null){
-            foundPackage.setStatus(FishStatus.SOLD);
-            auction.setFishList(fishPackageList);
-            auctionRepository.save(auction);
+    public void updateAuctionOnSale(Auction auction) {
+        Optional<Auction> newAuction = auctionRepository.findById(auction.getId());
+        if(newAuction.isPresent()){
+            Auction foundAuction = newAuction.get();
+            foundAuction.setFishList(auction.getFishList());
+            auctionRepository.save(foundAuction);
         }
     }
 
+    public PackageResponse getCurrentFish(String id) {
+        Auction auction = getCurrentAuction().getAuction();
+        List<FishPackage> list = auction.getFishList();
+
+        for (FishPackage fishPackage: list
+             ) {
+//            sort the bidList according to the bid price descending order
+            fishPackage.getBids().sort(Comparator.comparing(Bid::getBid).reversed());
+            if (fishPackage.getBidStatus().equals(BidStatus.OPEN)){
+                fishPackage.setBidStatus(BidStatus.CLOSE);
+                packageService.updateFishPackage(fishPackage);
+            }
+            if (fishPackage.getId().equals(id)){
+                fishPackage.setBidStatus(BidStatus.OPEN);
+            }
+        }
+        auction.setFishList(list);
+        auctionRepository.save(auction);
+        return  packageService.getCurrentFish(id);
+    }
 }

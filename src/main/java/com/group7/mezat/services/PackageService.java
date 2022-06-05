@@ -8,6 +8,7 @@ import com.group7.mezat.requests.PackageSoldRequest;
 import com.group7.mezat.requests.PackageUpdateRequest;
 import com.group7.mezat.responses.PackageResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Persistable;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
@@ -58,22 +59,19 @@ public class PackageService {
         }
     }
 
-    public void sellPackage(String packageId, PackageSoldRequest soldRequest) {
-        Optional<FishPackage> fishPackage = packageRepository.findById(packageId);
-        if (fishPackage.isPresent()){
-            FishPackage foundPackage = fishPackage.get();
-            foundPackage.setBuyerId(soldRequest.getBuyerId());
-            foundPackage.setSoldPrice(soldRequest.getSoldPrice());
-            foundPackage.setSoldDate(soldRequest.getSoldDate());
-            foundPackage.setStatus(FishStatus.SOLD);
-            packageRepository.save(foundPackage);
-        }
-    }
 
-    public PackageResponse getCurrentFish() {
-        FishPackage packageFish = packageRepository.findByBidStatus(BidStatus.OPEN);
-        System.out.println(packageFish);
-        return new PackageResponse(packageFish);
+
+    public PackageResponse getCurrentFish(String id) {
+        Optional<FishPackage> packageFish = packageRepository.findById(id);
+        System.out.println("service1");
+        if(packageFish.isPresent()){
+            FishPackage foundPackage= packageFish.get();
+            foundPackage.setBidStatus(BidStatus.OPEN);
+            packageRepository.save(foundPackage);
+            System.out.println("service2");
+            return new PackageResponse(foundPackage);
+        }
+        return null;
     }
 
     public FishPackage getFishPackageById(String currentPackageId) {
@@ -104,6 +102,24 @@ public class PackageService {
         }
         else{
             throw new Exception("error");
+        }
+    }
+
+    public PackageResponse getCurrentFishByUser() {
+        FishPackage fishPackage =packageRepository.findByBidStatus(BidStatus.OPEN);
+        return new PackageResponse(fishPackage);
+    }
+
+    public void updatePackageOnSale(FishPackage foundPackage) {
+        Optional<FishPackage> newPackage = packageRepository.findById(foundPackage.getId());
+        if(newPackage.isPresent()){
+            FishPackage newFoundPackage = newPackage.get();
+            newFoundPackage.setBidStatus(foundPackage.getBidStatus());
+            newFoundPackage.setStatus(foundPackage.getStatus());
+            newFoundPackage.setBuyerId(foundPackage.getBuyerId());
+            newFoundPackage.setSoldPrice(foundPackage.getSoldPrice());
+            packageRepository.save(newFoundPackage);
+
         }
     }
 }

@@ -4,7 +4,6 @@ package com.group7.mezat.controllers;
 import com.group7.mezat.documents.Bid;
 import com.group7.mezat.services.BidService;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class BidController {
     private BidService bidService;
+
 
 
     @GetMapping

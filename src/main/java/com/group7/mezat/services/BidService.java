@@ -1,11 +1,10 @@
 package com.group7.mezat.services;
 
-import com.group7.mezat.documents.Auction;
-import com.group7.mezat.documents.Bid;
-import com.group7.mezat.documents.FishPackage;
+import com.group7.mezat.documents.*;
 import com.group7.mezat.repos.BidRepository;
 import com.group7.mezat.repos.PackageRepository;
 import com.group7.mezat.requests.BidRequest;
+import com.group7.mezat.requests.PackageSoldRequest;
 import com.group7.mezat.responses.PackageResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -36,8 +35,8 @@ public class BidService {
     public void takeBid(BidRequest bidRequest) {
         Bid bid = new Bid();
 
-        PackageResponse packageResponse = packageService.getCurrentFish();
-        String currentPackageId = packageService.getCurrentFish().getId();
+        PackageResponse packageResponse = packageService.getCurrentFishByUser();
+        String currentPackageId = packageService.getCurrentFishByUser().getId();
         System.out.println("currentPackageId: " + currentPackageId);
         Auction auction = auctionService.getOneAuctionById(packageResponse.getAuctionId());
         if (currentPackageId != null) {
@@ -72,6 +71,29 @@ public class BidService {
 
     public List<Bid> getFishPackageBids(String fishPackageId) {
         return bidRepository.findAllByFishPackageId(Sort.by(Sort.Direction.DESC, "bid"),fishPackageId);
+    }
+
+    public void sellPackage(String packageId) {
+
+        Auction auction = auctionService.getCurrentAuction().getAuction();
+        List<FishPackage> fishPackageList = auction.getFishList();
+
+        FishPackage foundPackage = fishPackageList.stream()
+                .filter(fishPackage2 -> fishPackage2.getId().equals(packageId))
+                .findFirst()
+                .orElse(null);
+
+        if(foundPackage != null){
+            List<Bid> bidList = getFishPackageBids(packageId);
+            String buyerId = bidList.get(0).getBidderId();
+            foundPackage.setSoldPrice(bidList.get(0).getBid());
+            foundPackage.setBuyerId(buyerId);
+            foundPackage.setStatus(FishStatus.SOLD);
+            foundPackage.setBidStatus(BidStatus.CLOSE);
+            auction.setFishList(fishPackageList);
+            packageService.updatePackageOnSale(foundPackage);
+            auctionService.updateAuctionOnSale(auction);
+        }
     }
 
 

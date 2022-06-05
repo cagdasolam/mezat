@@ -81,4 +81,10 @@ public class AuctionController {
     public void endAuction(@PathVariable String auctionId){
         auctionService.endAuction(auctionId);
     }
+
+    @GetMapping("/getCurrentFish/{id}")
+    public PackageResponse getCurrentFish(@PathVariable String id){
+        System.out.println("controller");
+        return auctionService.getCurrentFish(id);
+    }
 }

@@ -5,7 +5,6 @@ import com.group7.mezat.controllers.AuctionController;
 import com.group7.mezat.controllers.UserController;
 import com.group7.mezat.documents.User;
 import com.group7.mezat.requests.BidRequest;
-import com.group7.mezat.requests.PackageSoldRequest;
 import com.group7.mezat.services.AuctionService;
 import com.group7.mezat.services.BidService;
 import lombok.AllArgsConstructor;
@@ -26,7 +25,7 @@ public class AuctionManager {
     private UserController userController;
 
 
-
+//    @PostMapping("/bid") take a {@link bidRequest} and make a bid
     @PostMapping("/bid")
     public void takeBid(@RequestBody BidRequest bidRequest) {
         bidService.takeBid(bidRequest);
@@ -37,8 +36,8 @@ public class AuctionManager {
     }
 
     @PutMapping("/sellPackage/{fishPackageId}")
-    public void sellPackage(@PathVariable String fishPackageId, @RequestBody PackageSoldRequest packageSoldRequest) {
-        auctionService.sellPackage(fishPackageId, packageSoldRequest);
+    public void sellPackage(@PathVariable String fishPackageId) {
+        bidService.sellPackage(fishPackageId);
     }
 
 
